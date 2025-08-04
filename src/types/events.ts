@@ -7,6 +7,7 @@ import { ContactFormData } from './order';
 
 // Базовые типы событий
 export type EventMap = {
+	'products:loading': unknown;
 	'products:loaded': IProductList;
 	'product:selected': IProduct;
 	'basket:changed': IBasket;
@@ -14,6 +15,8 @@ export type EventMap = {
 	'form:submit': IOrder;
 	'modal:open': unknown;
 	'modal:close': unknown;
+	'card:select': { product: IProduct };
+	error: { error: string };
 };
 
 // Интерфейс для компонентов с событиями
