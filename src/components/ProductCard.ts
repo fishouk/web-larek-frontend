@@ -1,6 +1,7 @@
 import { IProduct } from '../types/product';
 import { ProductCategory } from '../types/enums';
 import { IEventEmitter } from '../types/events';
+import { cloneTemplate } from '../utils/utils';
 
 export interface IProductCard {
 	render(product: IProduct): HTMLElement;
@@ -27,8 +28,7 @@ export class ProductCard implements IProductCard {
 	}
 
 	render(product: IProduct): HTMLElement {
-		const element = this._template.content.cloneNode(true) as DocumentFragment;
-		const cardElement = element.querySelector('.card') as HTMLElement;
+		const cardElement = cloneTemplate<HTMLElement>(this._template);
 
 		const categoryElement = cardElement.querySelector('.card__category');
 		const titleElement = cardElement.querySelector('.card__title');

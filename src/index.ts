@@ -6,6 +6,7 @@ import { AppModel } from './components/AppModel';
 import { ProductCard } from './components/ProductCard';
 import { Gallery } from './components/Gallery';
 import { API_URL, CDN_URL } from './utils/constants';
+import { ensureElement } from './utils/utils';
 
 // Инициализация EventEmitter
 const events = new EventEmitter();
@@ -14,19 +15,8 @@ const events = new EventEmitter();
 const api = new WebLarekAPI(API_URL, CDN_URL);
 
 // Получение DOM элементов
-const galleryContainer = document.querySelector('.gallery') as HTMLElement;
-const cardTemplate = document.querySelector(
-	'#card-catalog'
-) as HTMLTemplateElement;
-
-// Проверяем наличие необходимых элементов
-if (!galleryContainer) {
-	throw new Error('Контейнер галереи не найден');
-}
-
-if (!cardTemplate) {
-	throw new Error('Шаблон карточки товара не найден');
-}
+const galleryContainer = ensureElement<HTMLElement>('.gallery');
+const cardTemplate = ensureElement<HTMLTemplateElement>('#card-catalog');
 
 // Инициализация компонентов
 const appModel = new AppModel(api, events);
