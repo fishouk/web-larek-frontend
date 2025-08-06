@@ -1,6 +1,7 @@
 import { IProduct } from '../types/product';
 import { IEventEmitter } from '../types/events';
 import { ProductCard } from './ProductCard';
+import { createTextElement } from '../utils/utils';
 
 export interface IGallery {
 	render(products: IProduct[]): void;
@@ -25,7 +26,11 @@ export class Gallery implements IGallery {
 		this._container.innerHTML = '';
 
 		if (products.length === 0) {
-			this._container.innerHTML = '<p>Товары не найдены</p>';
+			const emptyMessage = createTextElement<HTMLParagraphElement>(
+				'p',
+				'Товары не найдены'
+			);
+			this._container.appendChild(emptyMessage);
 			return;
 		}
 
@@ -36,10 +41,20 @@ export class Gallery implements IGallery {
 	}
 
 	showLoading(): void {
-		this._container.innerHTML = '<p>Загрузка товаров...</p>';
+		this._container.innerHTML = '';
+		const loadingMessage = createTextElement<HTMLParagraphElement>(
+			'p',
+			'Загрузка товаров...'
+		);
+		this._container.appendChild(loadingMessage);
 	}
 
 	showError(message: string): void {
-		this._container.innerHTML = `<p>Ошибка: ${message}</p>`;
+		this._container.innerHTML = '';
+		const errorMessage = createTextElement<HTMLParagraphElement>(
+			'p',
+			`Ошибка: ${message}`
+		);
+		this._container.appendChild(errorMessage);
 	}
 }

@@ -1,7 +1,7 @@
 import { IProduct } from '../types/product';
 import { ProductCategory } from '../types/enums';
 import { IEventEmitter } from '../types/events';
-import { cloneTemplate } from '../utils/utils';
+import { cloneTemplate, ensureElement, bem } from '../utils/utils';
 
 export interface IProductCard {
 	render(product: IProduct): HTMLElement;
@@ -18,48 +18,41 @@ export class ProductCard implements IProductCard {
 
 	protected getCategoryClass(category: ProductCategory): string {
 		const categoryMap: Record<ProductCategory, string> = {
-			'софт-скил': 'card__category_soft',
-			'хард-скил': 'card__category_hard',
-			другое: 'card__category_other',
-			дополнительное: 'card__category_additional',
-			кнопка: 'card__category_button',
+			'софт-скил': bem('card', 'category', 'soft').name,
+			'хард-скил': bem('card', 'category', 'hard').name,
+			другое: bem('card', 'category', 'other').name,
+			дополнительное: bem('card', 'category', 'additional').name,
+			кнопка: bem('card', 'category', 'button').name,
 		};
-		return categoryMap[category] || 'card__category_other';
+		return categoryMap[category] || bem('card', 'category', 'other').name;
 	}
 
 	render(product: IProduct): HTMLElement {
 		const cardElement = cloneTemplate<HTMLElement>(this._template);
 
-		const categoryElement = cardElement.querySelector('.card__category');
-		const titleElement = cardElement.querySelector('.card__title');
-		const imageElement = cardElement.querySelector(
-			'.card__image'
-		) as HTMLImageElement;
-		const priceElement = cardElement.querySelector('.card__price');
+		const categoryElement = ensureElement('.card__category', cardElement);
+		const titleElement = ensureElement('.card__title', cardElement);
+		const imageElement = ensureElement<HTMLImageElement>(
+			'.card__image',
+			cardElement
+		);
+		const priceElement = ensureElement('.card__price', cardElement);
 
-		if (categoryElement) {
-			categoryElement.textContent = product.category;
-			categoryElement.className = `card__category ${this.getCategoryClass(
-				product.category
-			)}`;
-		}
+		categoryElement.textContent = product.category;
+		categoryElement.className = `card__category ${this.getCategoryClass(
+			product.category
+		)}`;
 
-		if (titleElement) {
-			titleElement.textContent = product.title;
-		}
+		titleElement.textContent = product.title;
 
-		if (imageElement) {
-			imageElement.src = product.image;
-			imageElement.alt = product.title;
-		}
+		imageElement.src = product.image;
+		imageElement.alt = product.title;
 
-		if (priceElement) {
-			if (product.price === null) {
-				priceElement.textContent = 'Бесценно';
-				cardElement.classList.add('card_disabled');
-			} else {
-				priceElement.textContent = `${product.price} синапсов`;
-			}
+		if (product.price === null) {
+			priceElement.textContent = 'Бесценно';
+			cardElement.classList.add(bem('card', '', 'disabled').name);
+		} else {
+			priceElement.textContent = `${product.price} синапсов`;
 		}
 
 		// Добавляем обработчик клика

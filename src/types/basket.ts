@@ -39,6 +39,8 @@ export interface IBasket {
 	addItem(product: IProduct): void;
 	removeItem(productId: string): void;
 	clear(): void;
+	isEmpty: boolean;
+	count: number;
 }
 
 export class Basket implements IBasket {

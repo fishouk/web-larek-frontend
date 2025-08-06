@@ -9,8 +9,14 @@ import { ContactFormData } from './order';
 export type EventMap = {
 	'products:loading': unknown;
 	'products:loaded': IProductList;
+	'products:changed': { products: IProduct[] };
 	'product:selected': IProduct;
 	'basket:changed': IBasket;
+	'basket:add': { product: IProduct };
+	'basket:remove': { productId: ProductId };
+	'basket:clear': unknown;
+	'order:change': { field?: string; value?: any } | Record<string, never>;
+	'order:error': { errors: string[] };
 	'order:created': IOrderResult;
 	'form:submit': IOrder;
 	'modal:open': unknown;

@@ -19,24 +19,24 @@ const galleryContainer = ensureElement<HTMLElement>('.gallery');
 const cardTemplate = ensureElement<HTMLTemplateElement>('#card-catalog');
 
 // Инициализация компонентов
-const appModel = new AppModel(api, events);
+const appModel = new AppModel(events);
 const productCard = new ProductCard(cardTemplate, events);
 const gallery = new Gallery(galleryContainer, productCard, events);
 
-// Обработчики событий
-events.on('products:loading', () => {
-	gallery.showLoading();
+// === ПРЕЗЕНТЕР: ОБРАБОТЧИКИ СОБЫТИЙ МОДЕЛИ ===
+
+// Обработка загрузки товаров
+events.on('products:changed', (data) => {
+	gallery.render(data.products);
 });
 
-events.on('products:loaded', (data) => {
-	gallery.render(data.items);
-});
-
+// Обработка ошибок
 events.on('error', (data) => {
 	gallery.showError(data.error);
 	console.error('Ошибка приложения:', data.error);
 });
 
+// Обработка выбора товара
 events.on('card:select', (data) => {
 	appModel.selectProduct(data.product);
 	console.log('Выбран товар:', data.product.title);
@@ -44,22 +44,80 @@ events.on('card:select', (data) => {
 
 events.on('product:selected', (product) => {
 	console.log('Товар выбран в модели:', product.title);
-	// Здесь можно открыть модальное окно с товаром
+	// Здесь нужно открыть модальное окно с товаром
 });
 
-// Запуск приложения
+// Обработка корзины
+events.on('basket:changed', (basket) => {
+	console.log(
+		'Корзина изменена, товаров:',
+		basket.count,
+		'на сумму:',
+		basket.getTotal()
+	);
+	// Здесь нужно обновить счетчик в хедере
+});
+
+// Обработка заказа
+events.on('order:change', (data) => {
+	console.log('Изменены данные заказа:', data);
+});
+
+events.on('order:error', (data) => {
+	console.log('Ошибки валидации заказа:', data.errors);
+});
+
+events.on('order:created', (result) => {
+	console.log('Заказ создан:', result);
+	// Здесь нужно показать страницу успеха
+});
+
+// === ВЗАИМОДЕЙСТВИЕ С API ===
+
+// Загрузка товаров
+async function loadProducts() {
+	try {
+		gallery.showLoading();
+		const productList = await api.getProductList();
+		appModel.setProducts(productList.items);
+		console.log('Товары загружены успешно');
+	} catch (error) {
+		const errorMessage =
+			error instanceof Error ? error.message : 'Неизвестная ошибка';
+		events.emit('error', { error: errorMessage });
+	}
+}
+
+// Создание заказа
+async function createOrder() {
+	try {
+		const orderData = appModel.getOrderData();
+		const result = await api.createOrder(orderData);
+		appModel.onOrderSuccess(result);
+		console.log('Заказ успешно создан');
+	} catch (error) {
+		const errorMessage =
+			error instanceof Error ? error.message : 'Ошибка создания заказа';
+		events.emit('error', { error: errorMessage });
+	}
+}
+
+// === ЗАПУСК ПРИЛОЖЕНИЯ ===
+
 async function startApp() {
 	try {
-		await appModel.loadProducts();
+		await loadProducts();
 		console.log('Приложение запущено успешно');
 	} catch (error) {
 		console.error('Ошибка запуска приложения:', error);
 	}
 }
 
-// Запускаем приложение после загрузки DOM
+// Запускаем приложение
 if (document.readyState === 'loading') {
 	document.addEventListener('DOMContentLoaded', startApp);
 } else {
 	startApp();
 }
+
+export { createOrder, loadProducts };
