@@ -8,6 +8,7 @@ import {
 	ProductId,
 	ProductList,
 	Product,
+	Order,
 	OrderResult,
 	ApiError,
 	ProductCategory,
@@ -137,19 +138,19 @@ export class WebLarekAPI extends Api implements IWebLarekAPI {
 	}
 
 	/**
-	 * Валидация заказа перед отправкой
+	 * Валидация заказа перед отправкой - используем класс Order
 	 */
 	private validateOrderBeforeSubmit(order: IOrder): void {
-		if (!order.email || !order.phone || !order.address) {
-			throw new ApiError('Не заполнены обязательные поля');
-		}
-
-		if (order.items.length === 0) {
-			throw new ApiError('Корзина пуста');
-		}
-
-		if (order.total <= 0) {
-			throw new ApiError('Неверная сумма заказа');
+		try {
+			const orderInstance = new Order(order);
+			if (!orderInstance.validate()) {
+				throw new ApiError('Заказ не прошел валидацию');
+			}
+		} catch (error) {
+			if (error instanceof ApiError) {
+				throw error;
+			}
+			throw new ApiError('Ошибка валидации заказа');
 		}
 	}
 

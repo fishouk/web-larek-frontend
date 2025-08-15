@@ -1,7 +1,7 @@
-import { IProduct } from '../types/product';
+import { IProduct, Product } from '../types/product';
 import { IEventEmitter } from '../types/events';
 import { IBasket, Basket } from '../types/basket';
-import { IOrder, Order, IOrderResult } from '../types/order';
+import { IOrder, Order, IOrderResult, OrderResult } from '../types/order';
 import { ProductId } from '../types/base';
 
 export interface IAppModel {
@@ -31,10 +31,10 @@ export interface IAppModel {
 }
 
 export class AppModel implements IAppModel {
-	protected _products: IProduct[] = [];
-	protected _selectedProduct: IProduct | null = null;
+	protected _products: Product[] = [];
+	protected _selectedProduct: Product | null = null;
 	protected _basket: Basket;
-	protected _order: Partial<IOrder> = {};
+	protected _order: Partial<Order> = {};
 	protected _events: IEventEmitter;
 
 	constructor(events: IEventEmitter) {
@@ -61,13 +61,16 @@ export class AppModel implements IAppModel {
 	// === МЕТОДЫ ДЛЯ ТОВАРОВ ===
 
 	setProducts(products: IProduct[]): void {
-		this._products = products;
-		this._events.emit('products:changed', { products });
+		// Преобразуем в классы Product для использования методов
+		this._products = products.map((p) => new Product(p));
+		this._events.emit('products:changed', { products: this._products });
 	}
 
 	selectProduct(product: IProduct): void {
-		this._selectedProduct = product;
-		this._events.emit('product:selected', product);
+		// Создаем экземпляр класса Product
+		const productInstance = new Product(product);
+		this._selectedProduct = productInstance;
+		this._events.emit('product:selected', productInstance);
 	}
 
 	getProduct(id: ProductId): IProduct | undefined {
@@ -77,7 +80,9 @@ export class AppModel implements IAppModel {
 	// === МЕТОДЫ ДЛЯ КОРЗИНЫ ===
 
 	addToBasket(product: IProduct): void {
-		if (product.price === null || product.price <= 0) {
+		// Создаем экземпляр класса Product для использования методов
+		const productInstance = new Product(product);
+		if (!productInstance.isAvailable) {
 			this._events.emit('error', { error: 'Товар недоступен для покупки' });
 			return;
 		}
@@ -188,6 +193,8 @@ export class AppModel implements IAppModel {
 	onOrderSuccess(result: IOrderResult): void {
 		this.clearBasket();
 		this.clearOrder();
-		this._events.emit('order:created', result);
+		// Создаем экземпляр класса OrderResult для использования методов
+		const orderResult = new OrderResult(result);
+		this._events.emit('order:created', orderResult);
 	}
 }

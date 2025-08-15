@@ -1,17 +1,23 @@
-import { IProduct } from '../types/product';
+import { Component } from './base/Component';
+import { IProduct, Product } from '../types/product';
 import { ProductCategory } from '../types/enums';
 import { IEventEmitter } from '../types/events';
+import { IProductCardView } from '../types/views';
 import { cloneTemplate, ensureElement, bem } from '../utils/utils';
 
 export interface IProductCard {
 	render(product: IProduct): HTMLElement;
 }
 
-export class ProductCard implements IProductCard {
+export class ProductCard
+	extends Component<{ product: IProduct }>
+	implements IProductCard, IProductCardView
+{
 	protected _template: HTMLTemplateElement;
 	protected _events: IEventEmitter;
 
 	constructor(template: HTMLTemplateElement, events: IEventEmitter) {
+		super(document.createElement('div')); // Временный контейнер
 		this._template = template;
 		this._events = events;
 	}
@@ -27,7 +33,15 @@ export class ProductCard implements IProductCard {
 		return categoryMap[category] || bem('card', 'category', 'other').name;
 	}
 
-	render(product: IProduct): HTMLElement {
+	render(data?: { product: IProduct } | IProduct): HTMLElement {
+		// Поддерживаем оба варианта вызова для совместимости
+		const product =
+			data && 'product' in data ? data.product : (data as IProduct);
+
+		if (!product) {
+			throw new Error('Product data is required');
+		}
+
 		const cardElement = cloneTemplate<HTMLElement>(this._template);
 
 		const categoryElement = ensureElement('.card__category', cardElement);
@@ -48,17 +62,37 @@ export class ProductCard implements IProductCard {
 		imageElement.src = product.image;
 		imageElement.alt = product.title;
 
-		if (product.price === null) {
-			priceElement.textContent = 'Бесценно';
+		// Создаем экземпляр класса Product для использования методов
+		const productInstance = new Product(product);
+		priceElement.textContent = productInstance.getFormattedPrice();
+
+		if (!productInstance.isAvailable) {
 			cardElement.classList.add(bem('card', '', 'disabled').name);
-		} else {
-			priceElement.textContent = `${product.price} синапсов`;
 		}
 
-		// Добавляем обработчик клика
+		// Добавляем обработчик клика для карточки каталога
 		cardElement.addEventListener('click', () => {
-			this._events.emit('card:select', { product });
+			this._events.emit('card:select', { product: productInstance });
 		});
+
+		// Если это карточка превью (с кнопкой), добавляем обработчик для кнопки
+		const button = cardElement.querySelector('.card__button');
+		if (button) {
+			button.addEventListener('click', (event) => {
+				event.stopPropagation();
+				if (productInstance.isAvailable) {
+					this._events.emit('basket:add', { product: productInstance });
+				}
+			});
+
+			// Используем метод класса Product для проверки доступности
+			if (!productInstance.isAvailable) {
+				button.textContent = 'Недоступно';
+				(button as HTMLButtonElement).disabled = true;
+			} else {
+				button.textContent = 'В корзину';
+			}
+		}
 
 		return cardElement;
 	}

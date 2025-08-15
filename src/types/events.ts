@@ -15,13 +15,19 @@ export type EventMap = {
 	'basket:add': { product: IProduct };
 	'basket:remove': { productId: ProductId };
 	'basket:clear': unknown;
+	'basket:open': unknown;
 	'order:change': { field?: string; value?: any } | Record<string, never>;
 	'order:error': { errors: string[] };
 	'order:created': IOrderResult;
+	'order:open': unknown;
+	'order:submit': { payment: PaymentMethod; address: string };
+	'contacts:submit': { email: string; phone: string };
 	'form:submit': IOrder;
+	'form:change': { field: string; value: string };
 	'modal:open': unknown;
 	'modal:close': unknown;
 	'card:select': { product: IProduct };
+	'success:close': unknown;
 	error: { error: string };
 };
 
