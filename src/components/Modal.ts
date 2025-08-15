@@ -45,7 +45,7 @@ export class Modal extends Component<unknown> implements IModalView {
 	}
 
 	// Рендеринг модального окна
-	render(data?: unknown): HTMLElement {
+	render(): HTMLElement {
 		return this.container;
 	}
 }

@@ -13,6 +13,11 @@ export class ContactsForm
 {
 	constructor(container: HTMLElement, events: IEventEmitter) {
 		super(container, events);
+
+		// Обновление состояния кнопки при изменении формы
+		this._form.addEventListener('input', () => {
+			this._submit.disabled = !this.validate();
+		});
 	}
 
 	// Валидация формы контактов
@@ -20,47 +25,60 @@ export class ContactsForm
 		const formData = this.getFormData();
 
 		try {
-			new Order({
+			const tempOrder = new Order({
 				email: formData.email || '',
 				phone: formData.phone || '',
-				address: 'temp', 
+				address: 'temp',
 				payment: PaymentMethod.ONLINE,
 				total: 1,
 				items: ['temp'],
 			});
 
-			// Используем ту же логику валидации контактов, что и в классе Order
-			const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-			const phoneRegex = /^\+?[1-9]\d{1,14}$/;
-
-			return (
-				emailRegex.test(formData.email || '') &&
-				phoneRegex.test(formData.phone || '')
-			);
+			// Используем публичный метод валидации контактов из класса Order
+			return tempOrder.validateContactInfo();
 		} catch {
 			return false;
 		}
 	}
 
-	// Получение ошибок валидации
+	// Получение ошибок валидации - используем класс Order
 	getValidationErrors(): Record<string, string> {
 		const errors: Record<string, string> = {};
 		const formData = this.getFormData();
 
-		// Используем те же регулярные выражения, что и в Order
-		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-		const phoneRegex = /^\+?[1-9]\d{1,14}$/;
+		try {
+			const tempOrder = new Order({
+				email: formData.email || '',
+				phone: formData.phone || '',
+				address: 'temp',
+				payment: PaymentMethod.ONLINE,
+				total: 1,
+				items: ['temp'],
+			});
 
-		if (!formData.email) {
-			errors.email = 'Укажите email';
-		} else if (!emailRegex.test(formData.email)) {
+			// Проверяем каждое поле отдельно, используя логику из класса Order
+			if (!formData.email) {
+				errors.email = 'Укажите email';
+			} else if (!tempOrder.validateContactInfo()) {
+				// Если общая валидация не прошла, проверим email отдельно
+				const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+				if (!emailRegex.test(formData.email)) {
+					errors.email = 'Некорректный email';
+				}
+			}
+
+			if (!formData.phone) {
+				errors.phone = 'Укажите телефон';
+			} else if (!tempOrder.validateContactInfo()) {
+				// Если общая валидация не прошла, проверим телефон отдельно
+				const phoneRegex = /^\+?[1-9]\d{1,14}$/;
+				if (!phoneRegex.test(formData.phone.replace(/\s/g, ''))) {
+					errors.phone = 'Некорректный номер телефона';
+				}
+			}
+		} catch {
 			errors.email = 'Некорректный email';
-		}
-
-		if (!formData.phone) {
-			errors.phone = 'Укажите телефон';
-		} else if (!phoneRegex.test(formData.phone.replace(/\s/g, ''))) {
-			errors.phone = 'Некорректный номер телефона';
+			errors.phone = 'Некорректный телефон';
 		}
 
 		return errors;

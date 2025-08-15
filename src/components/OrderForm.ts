@@ -62,9 +62,8 @@ export class OrderForm extends Form<OrderFormData> implements IOrderFormView {
 	validate(): boolean {
 		const formData = this.getFormData();
 
-
 		try {
-			new Order({
+			const tempOrder = new Order({
 				email: 'temp@temp.com', // Временные данные
 				phone: '+1234567890',
 				address: formData.address || '',
@@ -73,13 +72,8 @@ export class OrderForm extends Form<OrderFormData> implements IOrderFormView {
 				items: ['temp'],
 			});
 
-			// Используем ту же логику валидации доставки, что и в классе Order
-			const hasAddress = !!(
-				formData.address && formData.address.trim().length > 0
-			);
-			const hasPayment = this._selectedPayment !== null;
-
-			return hasAddress && hasPayment;
+			// Используем публичный метод валидации доставки из класса Order
+			return tempOrder.validateDelivery() && this._selectedPayment !== null;
 		} catch {
 			return false;
 		}

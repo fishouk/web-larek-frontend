@@ -194,7 +194,7 @@ events.on('modal:close', () => {
 });
 
 // Обработка изменений формы
-events.on('form:change', (data) => {
+events.on('form:change', () => {
 	// Можно добавить валидацию в реальном времени
 });
 

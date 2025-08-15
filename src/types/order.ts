@@ -58,7 +58,7 @@ export class Order implements IOrder, IValidatable {
 	}
 
 	// Валидация контактной информации
-	private validateContactInfo(): boolean {
+	validateContactInfo(): boolean {
 		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 		const phoneRegex = /^\+?[1-9]\d{1,14}$/;
 
@@ -66,17 +66,17 @@ export class Order implements IOrder, IValidatable {
 	}
 
 	// Валидация доставки
-	private validateDelivery(): boolean {
+	validateDelivery(): boolean {
 		return !!this.address && this.address.trim().length > 0;
 	}
 
 	// Валидация товаров
-	private validateItems(): boolean {
+	validateItems(): boolean {
 		return Array.isArray(this.items) && this.items.length > 0;
 	}
 
 	// Валидация суммы
-	private validateTotal(): boolean {
+	validateTotal(): boolean {
 		return typeof this.total === 'number' && this.total > 0;
 	}
 
