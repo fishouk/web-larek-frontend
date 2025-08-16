@@ -26,6 +26,8 @@ export interface IAppModel {
 	setOrderField<K extends keyof IOrder>(field: K, value: IOrder[K]): void;
 	validateOrder(): boolean;
 	getOrderErrors(): string[];
+	getOrderFormErrors(): string[];
+	getContactsFormErrors(): string[];
 	getOrderData(): IOrder;
 	clearOrder(): void;
 }
@@ -158,6 +160,44 @@ export class AppModel implements IAppModel {
 
 		if (this._basket.isEmpty) {
 			errors.push('Корзина пуста');
+		}
+
+		return errors;
+	}
+
+	// Валидация только для формы заказа (адрес и способ оплаты)
+	getOrderFormErrors(): string[] {
+		const errors: string[] = [];
+
+		if (!this._order.address?.trim()) {
+			errors.push('Укажите адрес доставки');
+		}
+
+		if (!this._order.payment) {
+			errors.push('Выберите способ оплаты');
+		}
+
+		if (this._basket.isEmpty) {
+			errors.push('Корзина пуста');
+		}
+
+		return errors;
+	}
+
+	// Валидация только для формы контактов (email и телефон)
+	getContactsFormErrors(): string[] {
+		const errors: string[] = [];
+
+		if (!this._order.email) {
+			errors.push('Укажите email');
+		} else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this._order.email)) {
+			errors.push('Некорректный email');
+		}
+
+		if (!this._order.phone) {
+			errors.push('Укажите телефон');
+		} else if (!/^\+?[1-9]\d{1,14}$/.test(this._order.phone)) {
+			errors.push('Некорректный номер телефона');
 		}
 
 		return errors;

@@ -185,7 +185,7 @@ events.on('order:change', (data) => {
 	if (data.field === 'payment' || data.field === 'address') {
 		appModel.setOrderField(data.field, data.value);
 	}
-	const errors = appModel.getOrderErrors();
+	const errors = appModel.getOrderFormErrors();
 	orderForm.setErrors(errors);
 	orderForm.setValid(errors.length === 0);
 });
@@ -194,7 +194,7 @@ events.on('contacts:change', (data) => {
 	if (data.field === 'email' || data.field === 'phone') {
 		appModel.setOrderField(data.field, data.value);
 	}
-	const errors = appModel.getOrderErrors();
+	const errors = appModel.getContactsFormErrors();
 	contactsForm.setErrors(errors);
 	contactsForm.setValid(errors.length === 0);
 });
