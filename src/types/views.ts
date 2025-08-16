@@ -35,9 +35,9 @@ export interface IModalView extends IView {
 
 // Интерфейс для отображения корзины
 export interface IBasketView extends IView {
-	render(data?: { basket: IBasket }): HTMLElement;
-	updateCounter(count: number): void;
-	updateTotal(total: number): void;
+	render(): HTMLElement;
+	setItems(items: HTMLElement[]): void;
+	setTotal(total: number): void;
 }
 
 // Интерфейс для отображения формы

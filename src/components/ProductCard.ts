@@ -78,6 +78,12 @@ export class ProductCard
 		// Если это карточка превью (с кнопкой), добавляем обработчик для кнопки
 		const button = cardElement.querySelector('.card__button');
 		if (button) {
+			// Проверяем, есть ли товар в корзине
+			this._events.emit('product:check-in-basket', {
+				product: productInstance,
+				button: button as HTMLButtonElement,
+			});
+
 			button.addEventListener('click', (event) => {
 				event.stopPropagation();
 				if (productInstance.isAvailable) {

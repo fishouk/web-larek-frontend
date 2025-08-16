@@ -1,7 +1,7 @@
-import { IProduct, Product } from '../types/product';
+import { IProduct } from '../types/product';
 import { IEventEmitter } from '../types/events';
 import { IBasket, Basket } from '../types/basket';
-import { IOrder, Order, IOrderResult, OrderResult } from '../types/order';
+import { IOrder, IOrderResult } from '../types/order';
 import { ProductId } from '../types/base';
 
 export interface IAppModel {
@@ -31,10 +31,10 @@ export interface IAppModel {
 }
 
 export class AppModel implements IAppModel {
-	protected _products: Product[] = [];
-	protected _selectedProduct: Product | null = null;
+	protected _products: IProduct[] = [];
+	protected _selectedProduct: IProduct | null = null;
 	protected _basket: Basket;
-	protected _order: Partial<Order> = {};
+	protected _order: Partial<IOrder> = {};
 	protected _events: IEventEmitter;
 
 	constructor(events: IEventEmitter) {
@@ -61,16 +61,14 @@ export class AppModel implements IAppModel {
 	// === МЕТОДЫ ДЛЯ ТОВАРОВ ===
 
 	setProducts(products: IProduct[]): void {
-		// Преобразуем в классы Product для использования методов
-		this._products = products.map((p) => new Product(p));
+		this._products = products;
 		this._events.emit('products:changed', { products: this._products });
 	}
 
 	selectProduct(product: IProduct): void {
-		// Создаем экземпляр класса Product
-		const productInstance = new Product(product);
-		this._selectedProduct = productInstance;
-		this._events.emit('product:selected', productInstance);
+		const existingProduct = this._products.find((p) => p.id === product.id);
+		this._selectedProduct = existingProduct || product;
+		this._events.emit('product:selected', this._selectedProduct);
 	}
 
 	getProduct(id: ProductId): IProduct | undefined {
@@ -80,9 +78,7 @@ export class AppModel implements IAppModel {
 	// === МЕТОДЫ ДЛЯ КОРЗИНЫ ===
 
 	addToBasket(product: IProduct): void {
-		// Создаем экземпляр класса Product для использования методов
-		const productInstance = new Product(product);
-		if (!productInstance.isAvailable) {
+		if (product.price === null) {
 			this._events.emit('error', { error: 'Товар недоступен для покупки' });
 			return;
 		}
@@ -109,11 +105,14 @@ export class AppModel implements IAppModel {
 		return this._basket.count;
 	}
 
+	isProductInBasket(productId: ProductId): boolean {
+		return this._basket.items.some((item) => item.product.id === productId);
+	}
+
 	// === МЕТОДЫ ДЛЯ ЗАКАЗА ===
 
 	setOrderField<K extends keyof IOrder>(field: K, value: IOrder[K]): void {
 		this._order[field] = value;
-		this._events.emit('order:change', { field, value });
 
 		// Валидация при изменении поля
 		const errors = this.getOrderErrors();
@@ -123,22 +122,15 @@ export class AppModel implements IAppModel {
 	}
 
 	validateOrder(): boolean {
-		if (
-			!this._order.email ||
-			!this._order.phone ||
-			!this._order.address ||
-			!this._order.payment
-		) {
-			return false;
-		}
-
-		const order = new Order({
-			...(this._order as IOrder),
-			items: this._basket.getSelectedItemIds(),
-			total: this.getBasketTotal(),
-		});
-
-		return order.validate();
+		return (
+			!!this._order.email &&
+			!!this._order.phone &&
+			!!this._order.address &&
+			!!this._order.payment &&
+			!this._basket.isEmpty &&
+			/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this._order.email) &&
+			/^\+?[1-9]\d{1,14}$/.test(this._order.phone)
+		);
 	}
 
 	getOrderErrors(): string[] {
@@ -186,15 +178,12 @@ export class AppModel implements IAppModel {
 
 	clearOrder(): void {
 		this._order = {};
-		this._events.emit('order:change', {});
 	}
 
 	// Методы для обработки результатов от презентера
 	onOrderSuccess(result: IOrderResult): void {
 		this.clearBasket();
 		this.clearOrder();
-		// Создаем экземпляр класса OrderResult для использования методов
-		const orderResult = new OrderResult(result);
-		this._events.emit('order:created', orderResult);
+		this._events.emit('order:created', result);
 	}
 }

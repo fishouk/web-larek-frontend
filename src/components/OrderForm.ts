@@ -1,6 +1,6 @@
 import { Form } from './Form';
 import { IOrderFormView } from '../types/views';
-import { OrderFormData, Order } from '../types/order';
+import { OrderFormData } from '../types/order';
 import { PaymentMethod } from '../types/enums';
 import { IEventEmitter } from '../types/events';
 
@@ -22,13 +22,17 @@ export class OrderForm extends Form<OrderFormData> implements IOrderFormView {
 			button.addEventListener('click', () => {
 				const payment = button.name as PaymentMethod;
 				this.setPaymentMethod(payment);
-				this.onInputChange('payment', payment);
+				this._events.emit('order:change', { field: 'payment', value: payment });
 			});
 		});
 
-		// Обновление состояния кнопки 'Далее'
-		this._form.addEventListener('input', () => {
-			this._submit.disabled = !this.validate();
+		// Обновление данных при изменении полей
+		this._form.addEventListener('input', (event) => {
+			const target = event.target as HTMLInputElement;
+			this._events.emit('order:change', {
+				field: target.name,
+				value: target.value,
+			});
 		});
 	}
 
@@ -55,27 +59,6 @@ export class OrderForm extends Form<OrderFormData> implements IOrderFormView {
 		super.setFormData(data);
 		if (data.payment) {
 			this.setPaymentMethod(data.payment);
-		}
-	}
-
-	// Валидация формы заказа - используем класс Order
-	validate(): boolean {
-		const formData = this.getFormData();
-
-		try {
-			const tempOrder = new Order({
-				email: 'temp@temp.com', // Временные данные
-				phone: '+1234567890',
-				address: formData.address || '',
-				payment: this._selectedPayment || PaymentMethod.ONLINE,
-				total: 1,
-				items: ['temp'],
-			});
-
-			// Используем публичный метод валидации доставки из класса Order
-			return tempOrder.validateDelivery() && this._selectedPayment !== null;
-		} catch {
-			return false;
 		}
 	}
 

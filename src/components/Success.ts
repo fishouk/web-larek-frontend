@@ -1,6 +1,6 @@
 import { Component } from './base/Component';
 import { IOrderSuccessView } from '../types/views';
-import { IOrderResult, OrderResult } from '../types/order';
+import { IOrderResult } from '../types/order';
 import { IEventEmitter } from '../types/events';
 import { ensureElement } from '../utils/utils';
 
@@ -36,11 +36,9 @@ export class Success
 	render(data?: { result: IOrderResult }): HTMLElement {
 		if (data && data.result) {
 			const { result } = data;
-			// Создаем экземпляр класса OrderResult для использования методов
-			const orderResult = new OrderResult(result);
 			this.setText(
 				'.order-success__description',
-				`Списано ${orderResult.getFormattedTotal()}`
+				`Списано ${result.total} синапсов`
 			);
 		}
 

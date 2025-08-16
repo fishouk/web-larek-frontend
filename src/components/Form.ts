@@ -97,6 +97,12 @@ export class Form<T extends Record<string, any>>
 		this.setDisabled('[type=submit]', !valid);
 	}
 
+	// Установка ошибок
+	setErrors(errors: string[]): void {
+		this._errors.textContent = errors.join(', ');
+		this.setDisabled('[type=submit]', errors.length > 0);
+	}
+
 	render(data?: T): HTMLElement {
 		if (data) {
 			this.setFormData(data);

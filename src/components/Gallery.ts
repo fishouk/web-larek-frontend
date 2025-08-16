@@ -1,31 +1,20 @@
-import { IProduct } from '../types/product';
-import { IEventEmitter } from '../types/events';
-import { ProductCard } from './ProductCard';
 import { createTextElement } from '../utils/utils';
 
 export interface IGallery {
-	render(products: IProduct[]): void;
+	render(elements: HTMLElement[]): void;
 }
 
 export class Gallery implements IGallery {
 	protected _container: HTMLElement;
-	protected _productCard: ProductCard;
-	protected _events: IEventEmitter;
 
-	constructor(
-		container: HTMLElement,
-		productCard: ProductCard,
-		events: IEventEmitter
-	) {
+	constructor(container: HTMLElement) {
 		this._container = container;
-		this._productCard = productCard;
-		this._events = events;
 	}
 
-	render(products: IProduct[]): void {
+	render(elements: HTMLElement[]): void {
 		this._container.innerHTML = '';
 
-		if (products.length === 0) {
+		if (elements.length === 0) {
 			const emptyMessage = createTextElement<HTMLParagraphElement>(
 				'p',
 				'Товары не найдены'
@@ -34,9 +23,8 @@ export class Gallery implements IGallery {
 			return;
 		}
 
-		products.forEach((product) => {
-			const productElement = this._productCard.render(product);
-			this._container.appendChild(productElement);
+		elements.forEach((element) => {
+			this._container.appendChild(element);
 		});
 	}
 
