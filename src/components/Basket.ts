@@ -32,10 +32,7 @@ export class Basket extends Component implements IBasketView {
 	setItems(items: HTMLElement[]): void {
 		this._list.innerHTML = '';
 		if (items.length === 0) {
-			const emptyMessage = document.createElement('p');
-			emptyMessage.textContent = 'Корзина пуста';
-			emptyMessage.className = 'basket__empty';
-			this._list.appendChild(emptyMessage);
+			this._list.innerHTML = '<p class="basket__empty">Корзина пуста</p>';
 			this.setDisabled('.basket__button', true);
 		} else {
 			items.forEach((item) => this._list.appendChild(item));

@@ -40,7 +40,7 @@ export class Modal extends Component<unknown> implements IModalView {
 	// Закрытие модального окна
 	close(): void {
 		this.toggleClass('modal_active', false);
-		this.setContent(document.createElement('div'));
+		this._content.innerHTML = '';
 		this._events.emit('modal:close', {});
 	}
 

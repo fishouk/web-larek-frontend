@@ -17,7 +17,8 @@ export class ProductCard
 	protected _events: IEventEmitter;
 
 	constructor(template: HTMLTemplateElement, events: IEventEmitter) {
-		super(document.createElement('div')); // Временный контейнер
+		const tempContainer = template.content.cloneNode(true) as DocumentFragment;
+		super(tempContainer.firstElementChild as HTMLElement);
 		this._template = template;
 		this._events = events;
 	}

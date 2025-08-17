@@ -11,6 +11,7 @@ import { Basket } from './components/Basket';
 import { OrderForm } from './components/OrderForm';
 import { ContactsForm } from './components/ContactsForm';
 import { Success } from './components/Success';
+import { BasketItem } from './components/BasketItem';
 import { API_URL, CDN_URL } from './utils/constants';
 import { ensureElement } from './utils/utils';
 
@@ -39,9 +40,7 @@ const appModel = new AppModel(events);
 const page = new Page(pageContainer, events);
 const modal = new Modal(modalContainer, events);
 
-// Компоненты карточек
-const productCard = new ProductCard(cardCatalogTemplate, events);
-const previewCard = new ProductCard(cardPreviewTemplate, events);
+// Компоненты
 const gallery = new Gallery(galleryContainer);
 
 // Инициализация остальных компонентов
@@ -53,19 +52,20 @@ const basket = new Basket(
 	events
 );
 
-const orderElement = orderTemplate.content.firstElementChild?.cloneNode(
-	true
-) as HTMLElement;
-const orderContainer = document.createElement('div');
-orderContainer.appendChild(orderElement);
-const orderForm = new OrderForm(orderContainer, events);
+// Инициализируем корзину пустым состоянием
+basket.setItems([]);
+basket.setTotal(0);
 
-const contactsElement = contactsTemplate.content.firstElementChild?.cloneNode(
+const orderFormElement = orderTemplate.content.firstElementChild?.cloneNode(
 	true
-) as HTMLElement;
-const contactsContainer = document.createElement('div');
-contactsContainer.appendChild(contactsElement);
-const contactsForm = new ContactsForm(contactsContainer, events);
+) as HTMLFormElement;
+const orderForm = new OrderForm(orderFormElement, events);
+
+const contactsFormElement =
+	contactsTemplate.content.firstElementChild?.cloneNode(
+		true
+	) as HTMLFormElement;
+const contactsForm = new ContactsForm(contactsFormElement, events);
 
 const successElement = successTemplate.content.cloneNode(
 	true
@@ -80,6 +80,7 @@ const success = new Success(
 // Обработка загрузки товаров
 events.on('products:changed', (data) => {
 	const productElements = data.products.map((product) => {
+		const productCard = new ProductCard(cardCatalogTemplate, events);
 		return productCard.render(product);
 	});
 	gallery.render(productElements);
@@ -97,6 +98,7 @@ events.on('card:select', (data) => {
 });
 
 events.on('product:selected', (product) => {
+	const previewCard = new ProductCard(cardPreviewTemplate, events);
 	const cardElement = previewCard.render(product);
 	modal.setContent(cardElement);
 	modal.open();
@@ -114,32 +116,9 @@ events.on('product:check-in-basket', (data) => {
 events.on('basket:changed', (basketData) => {
 	page.setBasketCounter(basketData.count);
 
-	// Создаем элементы списка корзины
 	const basketItems = basketData.items.map((item, index) => {
-		const basketItem = cardBasketTemplate.content.cloneNode(
-			true
-		) as DocumentFragment;
-		const itemElement = basketItem.firstElementChild as HTMLElement;
-
-		const indexElement = itemElement.querySelector('.basket__item-index');
-		const titleElement = itemElement.querySelector('.card__title');
-		const priceElement = itemElement.querySelector('.card__price');
-		const deleteButton = itemElement.querySelector(
-			'.basket__item-delete'
-		) as HTMLButtonElement;
-
-		if (indexElement) indexElement.textContent = String(index + 1);
-		if (titleElement) titleElement.textContent = item.product.title;
-		if (priceElement)
-			priceElement.textContent = `${item.product.price} синапсов`;
-
-		if (deleteButton) {
-			deleteButton.addEventListener('click', () => {
-				events.emit('basket:remove', { productId: item.product.id });
-			});
-		}
-
-		return itemElement;
+		const basketItem = new BasketItem(cardBasketTemplate, events);
+		return basketItem.render({ product: item.product, index });
 	});
 
 	basket.setItems(basketItems);

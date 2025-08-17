@@ -19,9 +19,15 @@ export class Form<T extends Record<string, any>>
 		super(container);
 		this._events = events;
 
-		this._form = ensureElement<HTMLFormElement>('form', container);
-		this._submit = ensureElement<HTMLButtonElement>('[type=submit]', container);
-		this._errors = ensureElement<HTMLElement>('.form__errors', container);
+		this._form =
+			container.tagName === 'FORM'
+				? (container as HTMLFormElement)
+				: ensureElement<HTMLFormElement>('form', container);
+		this._submit = ensureElement<HTMLButtonElement>(
+			'[type=submit]',
+			this._form
+		);
+		this._errors = ensureElement<HTMLElement>('.form__errors', this._form);
 
 		this._form.addEventListener('input', (event) => {
 			const target = event.target as HTMLInputElement;
